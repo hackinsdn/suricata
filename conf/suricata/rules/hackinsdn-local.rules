@@ -1,0 +1,61 @@
+#detecter attaques ddos
+#alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg:"Possible TCP Syn Flood DoS"; flags:S; flow:to_server; threshold: type both, track by_src, count 80, seconds 5; classtype:attempted-dos; sid:10000012; rev:1;) 
+
+#detecter tenatives de faire login dans une site
+#alert ip any 80 <> $HOME_NET any (msg: "Possible WEB Brute Force Attack"; flow: established, to_server; threshold: type both, track by_src, count 40, seconds 5; classtype:attempted-admin; sid: 10000007; rev: 1;)
+
+
+#detecter scans verticales TCP -sT
+alert tcp $EXTERNAL_NET ![22,25,80,110,143,389,443] -> $HOME_NET ![22,25,80,110,143,389,443] (msg: "Possible nmap vertical -sT attack"; flags:S; threshold: type both, track by_src, count 1000, seconds 5; flow: to_server; classtype:attempted-recon; sid:10000008;rev:1;)
+
+#detecter scans verticales TCP -sS
+alert tcp $EXTERNAL_NET ![22,25,80,110,143,389,443] -> $HOME_NET ![22,25,80,110,143,389,443] (msg: "Possible nmap vertical -sS attack"; flags:S; threshold: type both, track by_src, count 1000, seconds 5; flow: to_server; classtype:attempted-recon; sid:11000008;rev:1;)
+
+#detecter scans verticales UDP
+alert udp $EXTERNAL_NET ![80,443] -> $HOME_NET ![80,443] (msg: "Possible nmap -sU vertical attack"; threshold: type both, track by_src, count 1000, seconds 5; classtype:attempted-recon; sid:10000011;rev:1;)
+
+#detecter scans horizontales TCP (nmap -sT)
+alert tcp $EXTERNAL_NET ![80,443] -> $HOME_NET ![80,443] (msg: "Possible nmap -sT horizontal scan"; flow: to_server, stateless, no_stream; flags:S; tcp.mss: 1460;dsize:0; threshold: type both, track by_src, count 1, seconds 15; classtype:attempted-recon; priority: 1;sid:11000020; rev:1;)
+
+#detecter scans horizontales TCP (nmap -sS)
+alert tcp $EXTERNAL_NET ![80,443] -> $HOME_NET ![80,443] (msg: "Possible nmap -sS horizontal scan";flow: to_server, stateless, no_stream; flags:S; window:1024;tcp.mss:1460; dsize:0; threshold: type both, track by_src, count 1, seconds 15; classtype:attempted-recon;sid:10000021; priority:1; rev:1;)
+
+#detecter scans horizontales UDP (nmap -sU)
+alert udp any ![80,443] -> any ![80,443] (msg: "Possible nmap -sU horizontal scan"; flow:to_server, stateless; dsize:0; threshold: type limit, track by_src, count 1, seconds 15; classtype:attempted-recon; sid:10000124; priority:1; rev:1;)
+
+#detecter scan hping3
+alert ip $EXTERNAL_NET any -> $HOME_NET any (msg: "Possible hping3 port scan"; flags:0; flow: to_server; threshold: type both, track by_src, count 10, seconds 10; classtype:attempted-recon;  sid:10000013;rev:1;) 
+
+
+#detecter scans imap - porte 143
+alert tcp $EXTERNAL_NET any -> $HOME_NET 143 (msg: "Possible IMAP Brute Force attack"; flags:S; flow: to_server; threshold: type both, track by_src, count 5, seconds 20; tcp.mss:1460; dsize:0; window:42340; classtype: credential-theft; sid: 100000137; rev:1;)
+
+#detecter attaques brute force pop3 - porte 110
+alert tcp $EXTERNAL_NET any -> $HOME_NET 110 (msg: "Possible POP3 Brute Force attack"; flags:S; flow: to_server; threshold: type both, track by_src, count 5, seconds 20; classtype: credential-theft; sid: 100000138; rev:1;)
+#tcp.mss:1460; dsize:0; window:42340;
+
+#detecter flood avec fragmentation
+#dsize:>=1450
+#alert ip $EXTERNAL_NET any -> $HOME_NET any (msg: "Possible packets fragmentation attack"; fragbits:M; threshold: type both, track by_rule, count 5, seconds 15; classtype: attempted-recon; sid: 100000139; rev:1;)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "Possible Reassembled TCP Fragmented Packets"; fragoffset:>0; threshold: type both, track by_src, count 3, seconds 15; classtype: bad-unknown; sid: 110000140; rev:1;)
+
+alert udp $EXTERNAL_NET any -> $HOME_NET any (msg: "Possible Reassembled UDP Fragmented Packets"; fragoffset:>0; threshold: type both, track by_src, count 3, seconds 15; classtype: bad-unknown; sid: 110000141; rev:1;)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "Possible TCP Fragmented Packets"; fragbits:M; threshold: type both, track by_src, count 3, seconds 15; classtype: bad-unknown; sid: 110000142; rev:1;)
+
+alert udp $EXTERNAL_NET any -> $HOME_NET any (msg: "Possible UDP Fragmented Packets"; fragbits:M; threshold: type both, track by_src, count 3, seconds 15; classtype: bad-unknown; sid: 110000143; rev:1;)
+
+#detecter flood icmp
+alert icmp $EXTERNAL_NET any -> $HOME_NET any (msg: "Possible ICMP Flood"; flow: to_server; threshold: type both, track by_src, count 1000, seconds 10; classtype: credential-theft; sid: 100000149; rev:1;)
+
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET 22 (msg:"CUSTOM ET SCAN Potential SSH Scan"; flow:to_server; flags:S,12; threshold: type both, track by_src, count 5, seconds 20; reference:url,en.wikipedia.org/wiki/Brute_force_attack; classtype:attempted-recon; sid:10000145; rev:20; metadata:created_at 2010_07_30, updated_at 2019_07_26;)
+
+
+
+
+
+
+
+

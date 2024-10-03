@@ -1,0 +1,1 @@
+*/2 * * * * root /usr/local/bin/update-suricata-misp.sh 2>&1 >/var/log/suricata-misp-update.log

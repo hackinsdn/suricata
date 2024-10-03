@@ -1,0 +1,1 @@
+*/10 * * * * root suricata-update --reload-command "kill -usr2 $(pidof suricata)" 2>&1 >/var/log/suricata-rules-update.log
