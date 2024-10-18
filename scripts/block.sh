@@ -15,7 +15,15 @@ fi
 
 curl -s $KYTOS_URL/api/kytos/mef_eline/v2/evc/ | jq -r '.[] | .id + " " + .uni_a.interface_id + " vlan=" + (.uni_a.tag.value|tostring) + " " + .uni_z.interface_id + " vlan=" + (.uni_z.tag.value|tostring)' > /tmp/evcs
 
-EVC=$(grep -w "vlan=$VLAN" /tmp/evcs)
+VLAN_ID=$VLAN
+VLAN_QUERY=$VLAN
+if [ "$VLAN" = "untagged" ]; then
+	VLAN_ID=0
+	VLAN_QUERY="(null|untagged)"
+fi
+
+
+EVC=$(egrep -w "vlan=$VLAN_QUERY" /tmp/evcs)
 if [ -z "$EVC" ]; then
 	echo "$(date) [WARN] VLAN not found! vlan=$VLAN ip=$IP"
 	exit 0
@@ -29,8 +37,8 @@ INTFA_PORT=$(echo "$INTFA" | cut -d':' -f9)
 INTFZ_SW=$(echo "$INTFZ" | cut -d':' -f1-8)
 INTFZ_PORT=$(echo "$INTFZ" | cut -d':' -f9)
 
-RESULT_A=$(curl -s -H 'Content-type: application/json' -X POST $KYTOS_URL/api/hackinsdn/containment/v1/ -d '{"switch": "'$INTFA_SW'", "interface": '$INTFA_PORT', "match": {"vlan": '$VLAN', "'$BLOCK_FIELD'": "'$IP'"}}')
-RESULT_Z=$(curl -s -H 'Content-type: application/json' -X POST $KYTOS_URL/api/hackinsdn/containment/v1/ -d '{"switch": "'$INTFZ_SW'", "interface": '$INTFZ_PORT', "match": {"vlan": '$VLAN', "'$BLOCK_FIELD'": "'$IP'"}}')
+RESULT_A=$(curl -s -H 'Content-type: application/json' -X POST $KYTOS_URL/api/hackinsdn/containment/v1/ -d '{"switch": "'$INTFA_SW'", "interface": '$INTFA_PORT', "match": {"vlan": '$VLAN_ID', "'$BLOCK_FIELD'": "'$IP'"}}')
+RESULT_Z=$(curl -s -H 'Content-type: application/json' -X POST $KYTOS_URL/api/hackinsdn/containment/v1/ -d '{"switch": "'$INTFZ_SW'", "interface": '$INTFZ_PORT', "match": {"vlan": '$VLAN_ID', "'$BLOCK_FIELD'": "'$IP'"}}')
 
 BLOCK_ID_A=failed
 if echo "$RESULT_A" | egrep -q '"containment_id":".*"'; then
