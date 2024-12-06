@@ -12,6 +12,7 @@ RUN --mount=source=.,target=/mnt,type=bind \
 						net-tools \
 						iputils-ping \
 						procps \
+						socat \
  && cp -r /mnt/conf/* /etc/ \
  && install --mode 0755 --owner root /mnt/scripts/hackinsdn-guardian.py /usr/local/bin/ \
  && install --mode 0755 --owner root /mnt/scripts/block.sh /usr/local/bin/ \
